@@ -22,7 +22,7 @@ WARNING: CHECKSUM ISN'T RETURNING CONSISTANT VALUES
                                                                                                                                                                                                        
 uint16_t a = 0b1000000000000000; //The 16 bit register I'm using to store the button states to transmit
 
-int lastTime = 0, currentTime = 0, delayTime = 500;
+int lastTime = 0, currentTime = 0, delayTime = 500; //Delays the loop() for 500 milliseconds
 
 FastCRC8 CRC8; //Some kind of setup for CRC8 usage
 //FastCRC16 CRC16; //Setup for CRC16 usage
@@ -48,8 +48,8 @@ void loop() {
   //Serial.println(checksum);
   //sendcommand(checksum);
 
-  currentTime = millis();
-  if(currentTime - lastTime ==delayTime) {
+  currentTime = millis(); //This whole block here is a delay
+  if(currentTime - lastTime >= delayTime) {
     //Serial.println(checksum);
     sendcommand(checksum);
     lastTime = currentTime;
@@ -72,11 +72,11 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
 
 void sendcommand(int checksum){
   Serial.print("<CP22GroundCom>");
-  Serial.print("<");
+  Serial.print("{");
   Serial.print(a); //Sends the register
-  Serial.print("><");
+  Serial.print("}[");
   Serial.print(checksum); //Sends the checksum
-  Serial.print(">");
+  Serial.print("]");
   Serial.print("\n");
   //Serial.print("GroundCom Transmission Successful!"); //Just for testing!
 }
