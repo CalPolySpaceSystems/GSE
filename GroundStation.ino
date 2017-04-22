@@ -72,11 +72,8 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
 
 void sendcommand(int checksum){
   Serial.print("<CP22GroundCom>");
-  Serial.print("{");
-  Serial.print(a); //Sends the register
-  Serial.print("}[");
+  Serial.print(a, BIN); //Sends the register
   Serial.print(checksum); //Sends the checksum
-  Serial.print("]");
   Serial.print("\n");
   //Serial.print("GroundCom Transmission Successful!"); //Just for testing!
 }
