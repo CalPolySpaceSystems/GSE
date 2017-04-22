@@ -16,14 +16,16 @@ List of things this program must do ($Tested, #Implemented, %To do):
 #Configure the format of the packet to be sent
 %Setup the command confirmation on this end, received from the pad
 
-WARNING: CHECKSUM ISN'T RETURNING CONSISTANT VALUES DUE TO DELAY()
+WARNING: CHECKSUM ISN'T RETURNING CONSISTANT VALUES
   
 */
                                                                                                                                                                                                        
 uint16_t a = 0b1000000000000000; //The 16 bit register I'm using to store the button states to transmit
 
+int lastTime = 0, currentTime = 0, delayTime = 500;
+
 FastCRC8 CRC8; //Some kind of setup for CRC8 usage
-FastCRC16 CRC16; //Setup for CRC16 usage
+//FastCRC16 CRC16; //Setup for CRC16 usage
  
 void buttoncheck(void);
 void sendcommand(int);
@@ -44,8 +46,14 @@ void loop() {
   int checksum = CRC8.smbus(a, 16); //Calculation of the checksum, courtesy of the FastCRC library, stored in the "checksum" integer
   //int checksum = CRC16.ccitt(a, 16); //CRC16 test
   //Serial.println(checksum);
-  sendcommand(checksum);
-  delay(200); //PROBLEM SPOT FOR CHECKSUM
+  //sendcommand(checksum);
+
+  currentTime = millis();
+  if(currentTime - lastTime ==delayTime) {
+    //Serial.println(checksum);
+    sendcommand(checksum);
+    lastTime = currentTime;
+  }
 
 }
 
@@ -63,9 +71,12 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
 }
 
 void sendcommand(int checksum){
-  Serial.print("CP22GroundCom");
+  Serial.print("<CP22GroundCom>");
+  Serial.print("<");
   Serial.print(a); //Sends the register
+  Serial.print("><");
   Serial.print(checksum); //Sends the checksum
+  Serial.print(">");
   Serial.print("\n");
   //Serial.print("GroundCom Transmission Successful!"); //Just for testing!
 }
