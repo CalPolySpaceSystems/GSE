@@ -28,7 +28,7 @@ FastCRC8 CRC8; //Some kind of setup for CRC8 usage
 //FastCRC16 CRC16; //Setup for CRC16 usage
  
 void buttoncheck(void);
-void sendcommand(int);
+void sendcommand();
 
 void setup() {
   //Put your setup code here, to run once:
@@ -43,7 +43,7 @@ void setup() {
 void loop() {
   //Put your main code here, to run repeatedly:
   buttoncheck(); //Run the buttoncheck function to get all button states and store in 16 bit register
-  int checksum = CRC8.smbus(a, 16); //Calculation of the checksum, courtesy of the FastCRC library, stored in the "checksum" integer
+  //int checksum = CRC8.smbus(a, 16); //Calculation of the checksum, courtesy of the FastCRC library, stored in the "checksum" integer
   //int checksum = CRC16.ccitt(a, 16); //CRC16 test
   //Serial.println(checksum);
   //sendcommand(checksum);
@@ -51,7 +51,7 @@ void loop() {
   currentTime = millis(); //This whole block here is a delay
   if(currentTime - lastTime >= delayTime) {
     //Serial.println(checksum);
-    sendcommand(checksum);
+    sendcommand();
     lastTime = currentTime;
   }
 
@@ -70,10 +70,13 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
   }
 }
 
-void sendcommand(int checksum){
+void sendcommand(){
+  int checksum = CRC8.smbus(a, 16);
   Serial.print("<CP22GroundCom>");
-  Serial.print(a, BIN); //Sends the register
+  Serial.print(a); //Sends the register
   Serial.print(checksum); //Sends the checksum
   Serial.print("\n");
   //Serial.print("GroundCom Transmission Successful!"); //Just for testing!
 }
+
+//<CP22GroundCom>32768234
