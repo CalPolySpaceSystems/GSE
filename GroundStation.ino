@@ -20,13 +20,9 @@ WARNING: CHECKSUM ISN'T RETURNING CONSISTANT VALUES
   
 */
                                                                                                                                                                                                        
-uint16_t a = 0b1000000000000000; //The 16 bit register I'm using to store the button states to transmit
-
-int lastTime = 0, currentTime = 0, delayTime = 500; //Delays the loop() for 500 milliseconds
-
-FastCRC8 CRC8; //Some kind of setup for CRC8 usage
-//FastCRC16 CRC16; //Setup for CRC16 usage
- 
+uint16_t a = 0b1000010000000101; //The 16 bit register I'm using to store the button states to transmit
+int xorchecksum(uint16_t);
+int lastTime = 0, currentTime = 0, delayTime = 500; //Delays the loop() for 500 milliseconds 
 void buttoncheck(void);
 void sendcommand();
 
@@ -45,16 +41,17 @@ void loop() {
   buttoncheck(); //Run the buttoncheck function to get all button states and store in 16 bit register
   //int checksum = CRC8.smbus(a, 16); //Calculation of the checksum, courtesy of the FastCRC library, stored in the "checksum" integer
   //int checksum = CRC16.ccitt(a, 16); //CRC16 test
-  //Serial.println(checksum);
-  //sendcommand(checksum);
-
+  int checksum = xorchecksum(a);
+  sendcommand();
+  delay(1000);
+/*
   currentTime = millis(); //This whole block here is a delay
   if(currentTime - lastTime >= delayTime) {
-    //Serial.println(checksum);
+    
     sendcommand();
     lastTime = currentTime;
   }
-
+*/
 }
 
 void buttoncheck() { //A function that uses a loop to check the state of each button, and stores the state in that 16 bit register I'm using
@@ -71,12 +68,29 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
 }
 
 void sendcommand(){
-  int checksum = CRC8.smbus(a, 16);
+  int checksum = xorchecksum(a);
   Serial.print("<CP22GroundCom>");
-  Serial.print(a); //Sends the register
-  Serial.print(checksum); //Sends the checksum
+  Serial.print(a); // Sends the register
+  Serial.print("-");
+  Serial.print(checksum); // Sends the checksum
   Serial.print("\n");
   //Serial.print("GroundCom Transmission Successful!"); //Just for testing!
 }
 
-//<CP22GroundCom>32768234
+int xorchecksum(uint16_t indata) {
+  int checksum;
+  union {
+    uint16_t longdata;
+    uint8_t shortdata [2];
+  } data;
+  data.longdata = indata;
+  for (int i = 0; i < 2; i++) {
+    checksum = checksum ^ data.shortdata[i];
+  }
+  //Serial.println(checksum);
+  return checksum;
+  
+}
+
+
+
