@@ -14,10 +14,15 @@ List of things this program must do ($Tested, #Implemented, %To do):
 
                                                                              
  */
-//uint16_t a = 0b1000000000000000; //The 16 bit register I'm using to store the button states to be received
+//uint16_t statedata = 0b1000000000000000; //The 16 bit register I'm using to store the button states to be received
 FastCRC8 CRC8; //Some kind of setup for CRC8 usage
 void receivecommand();
 void parsetransmission(String);
+uint16_t parsedata(String);
+int parsechecksum(String);
+bool datacheck(uint16_t, int);
+
+int lastTime = 0, currentTime = 0, delayTime = 1000; //Delays the loop() for 500 milliseconds
 
 void setup() {
   // put your setup code here, to run once:
@@ -30,39 +35,87 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  receivecommand();
-  delay(1000);
+  
+  currentTime = millis(); //This whole block here is a delay
+  if(currentTime - lastTime >= delayTime) {
+    receivecommand();
+    lastTime = currentTime;
+  }
 }
 
 void receivecommand(){ //This function receives the register
     
-  // read the incoming byte:
-  //String incomingCom = Serial.read(); //The actual receiving of the data!
-  String incomingCom = "<CP22GroundCom>100000000000000023"; //A test string to play with
-  if (incomingCom.startsWith("<CP22GroundCom>", 0)) { //This if statement confirms the CPSS ground control header
+  //String incomingCom = Serial.read(); // The actual receiving of the data!
+  String incomingCom = "<CP22GroundCom>32768234"; // A test string to play with
+  if (incomingCom.startsWith("<CP22GroundCom>", 0)) { // This if statement confirms the CPSS ground control header
     //Serial.println("Yup!");
-    incomingCom.remove(0, 15); //Remove header for additional processing
+    incomingCom.remove(0, 15); // Remove packet header for additional processing
     parsetransmission(incomingCom);
     }
-    else {
-      Serial.println("Nope!");
+    else { // If didn't receive tag, try again
+      //Serial.println("Nope!");
+      //delay(1000);
       receivecommand();
       }
        
 }
 
+// String -> Void
+// Takes in the data+checksum, then runs parse and checksum functions
 void parsetransmission(String incomingCom){
-  String receivedata = incomingCom;
-  String checksum = incomingCom;
+ 
+  int receivechecksum;
+  
 
-  receivedata.remove(16); //Isolating the data
-  checksum.remove(0, 16); //Isolating the checksum
-  checksum.toInt();
-  int stuff = 0; //An intermidiate value for the cast from String to uint16_t
-  uint16_t data = 0b1000000000000000;
-  stuff = receivedata.toInt;
-  Serial.println(stuff);
+  uint16_t receivedata = parsedata(incomingCom); // Extract that data!
+  //Serial.println(receivedata, BIN);
+  int receivecheck = parsechecksum(incomingCom); // Extract that checksum!
+  bool checkcheck = datacheck(receivedata, receivecheck);
+  Serial.println(checkcheck);
+
+}
+// String -> int
+// Removes the last two index positions of the String where the checksum is, and return the data as a 16 bit unsigned integer
+uint16_t parsedata(String incomingCom) {
+  // In the example, 32768 is the data
+  String rawdata = incomingCom;
+  int datalength = rawdata.length();
+  datalength -= 3;
+  rawdata.remove(datalength); // Delete the last two digits
+  int intdata = rawdata.toInt(); // Convert the data to int
+  //Serial.println(rawdata);
+  uint16_t inunsighned;
+  inunsighned = (uint16_t) intdata; // Cast int to unsigned 16 bit integer
+  //Serial.println(inunsighned, BIN);
+  return inunsighned;
   
 }
 
+// String -> int
+// Removes everything before the last two index positions in the string object and returns it as an integer
+int parsechecksum(String incomingCom) {
+  // In the example, 234 is the checksum
+  String rawstuff = incomingCom;
+  int datalength = incomingCom.length();
+  datalength -= 3;
+  rawstuff.remove(0, datalength); // Remove everything before the last two index positions
+  int sumdata = rawstuff.toInt();
+  //Serial.println(sumdata);
+  return sumdata;
+}
 
+// Int, Int -> bool
+// Verifies the data with the checksum
+bool datacheck(uint16_t indata, int inchecksum) {
+  //int checksum = CRC8.smbus(indata, 16);
+  //Serial.println(checksum);
+  //Serial.println(inchecksum);
+  if (CRC8.smbus(indata, 16) == inchecksum) {
+    //Serial.println("True");
+    return true;
+  }
+  else {
+    //Serial.println("False");
+    return false;
+  }
+}
