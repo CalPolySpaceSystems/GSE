@@ -15,12 +15,10 @@ List of things this program must do ($Tested, #Implemented, %To do):
 #Calculate a CRC8 checksum of the two bytes (16 bit register) of data using the FastCRC library
 #Configure the format of the packet to be sent
 %Setup the command confirmation on this end, received from the pad
-
-WARNING: CHECKSUM ISN'T RETURNING CONSISTANT VALUES
   
 */
                                                                                                                                                                                                        
-uint16_t a = 0b1000010000000101; //The 16 bit register I'm using to store the button states to transmit
+uint16_t a = 0b1000000000000000; //The 16 bit register I'm using to store the button states to transmit
 int xorchecksum(uint16_t);
 int lastTime = 0, currentTime = 0, delayTime = 500; //Delays the loop() for 500 milliseconds 
 void buttoncheck(void);
@@ -91,6 +89,3 @@ int xorchecksum(uint16_t indata) {
   return checksum;
   
 }
-
-
-
