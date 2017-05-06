@@ -11,11 +11,9 @@
 Ground control to Major Tom...
 List of things this program must do ($Tested, #Implemented, %To do):
 
-#Store all button and switch states in a 16 bit register for Arduino pins 2 to 13 
-#Calculate a CRC8 checksum of the two bytes (16 bit register) of data using the FastCRC library
-#Configure the format of the packet to be sent
-%Setup the command confirmation on this end, received from the pad
-  
+$Store all button and switch states in a 16 bit register for Arduino pins 2 to 13 
+$Calculate a CRC8 checksum of the two bytes (16 bit register) of data using the FastCRC library
+$Configure the format of the packet to be sent  
 */
                                                                                                                                                                                                        
 uint16_t a = 0b1000000000000000; //The 16 bit register I'm using to store the button states to transmit
@@ -40,6 +38,7 @@ void loop() {
   //int checksum = CRC8.smbus(a, 16); //Calculation of the checksum, courtesy of the FastCRC library, stored in the "checksum" integer
   //int checksum = CRC16.ccitt(a, 16); //CRC16 test
   int checksum = xorchecksum(a);
+  //Serial.println(a);
   sendcommand();
   delay(1000);
 /*
@@ -57,10 +56,13 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
     int state = digitalRead(i); //Takes in the state of whatever pin is being covered in the loop
 
     if (state == LOW) { //Switches are pulled to low when triggered
-      a | (10^i); //OR operator to set the bit to one
+      a = a | (1 << i); //OR operator to set the bit to one
+      //Serial.println("yup ");
+      //Serial.println(i);
+      //Serial.println(a);
     }
     else {
-      a &=~ (1 << 2); //Really complicated thing to turn the bit to zero
+      a = (a & (~(1 << i))); //Really complicated thing to turn the bit to zero
     }
   }
 }
@@ -89,3 +91,6 @@ int xorchecksum(uint16_t indata) {
   return checksum;
   
 }
+
+
+
