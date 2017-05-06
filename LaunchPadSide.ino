@@ -8,11 +8,10 @@
    Ethan Chao 2017  
 ------------------------------------------------------------------------------
 List of things this program must do ($Tested, #Implemented, %To do):
-#Receive the register and parse using StringObject: https://www.arduino.cc/en/Reference/StringObject
+#Receive the register and parse using StringObject
 #Confirm message fidelity with the checksum
-%Read register state and apply it to the pins (LOW When triggered)
-
-                                                                             
+#Read register state and apply it to the pins (LOW When triggered)
+                                                                           
  */
 uint16_t statedata = 0b1000000000000000; //The 16 bit register I'm using to store the button states to be received
 FastCRC8 CRC8; //Some kind of setup for CRC8 usage
@@ -47,7 +46,10 @@ void loop() {
 void applycommand() {
   for (int i = 2; i < 14; i++) {
       if ((statedata & (10^i)) == 1) {
-        digitalWrite(i, HIGH); // When button is triggered, pin set to high
+        digitalWrite(i, LOW); // When button is triggered, pin set to LOW
+      }
+      else {
+        digitalWrite(i, HIGH); // When button is no longer triggered, pin set to HIGH
       }
   } 
 }
