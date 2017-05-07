@@ -41,7 +41,7 @@ void loop() {
   //int checksum = CRC16.ccitt(a, 16); //CRC16 test
   uint16_t checksum = xorchecksum(a);
   sendcommand();
-  delay(1000);
+  delay(200);
 /*
   currentTime = millis(); //This whole block here is a delay
   if(currentTime - lastTime >= delayTime) {
@@ -57,10 +57,10 @@ void buttoncheck() { //A function that uses a loop to check the state of each bu
     int state = digitalRead(i); //Takes in the state of whatever pin is being covered in the loop
 
     if (state == LOW) { //Switches are pulled to low when triggered
-      a | (10^i); //OR operator to set the bit to one
+      a = a | (1<<i); //OR operator to set the bit to one
     }
     else {
-      a &=~ (1 << 2); //Really complicated thing to turn the bit to zero
+      a = a & (~(65535 &(1 << i))); //Really complicated thing to turn the bit to zero
     }
   }
 }

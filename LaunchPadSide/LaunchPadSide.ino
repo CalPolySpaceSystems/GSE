@@ -24,6 +24,8 @@ bool datacheck(uint16_t, int);
 uint16_t xorchecksum(uint16_t);
 void applycommand();
 
+char index;
+
 int lastTime = 0, currentTime = 0, delayTime = 1000; //Delays the loop() for 500 milliseconds
 
 void setup() {
@@ -32,24 +34,30 @@ void setup() {
   for (int i = 2; i < 14; i++) { //Setup I/O pins 2 through 13, the max number of I/Os we can get
     pinMode(i, OUTPUT); //Configure all avaliable I/Os for output 
   }
-
+  delay(10);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  while(Serial.available()) {
+  if(Serial.available()) {
     receivecommand(); // Gets the data
-    applycommand(); // Applys the new button states
+    applycommand(); // Applies the new button states
   }
+  Serial.setTimeout(100);
   /* FOR DEBUGGING */
-  Serial.println(statedata);
+  //Serial.println(statedata);
+  
+  applycommand();
 }
 
 
 void applycommand() {
   for (uint16_t i = 2; i < 14; i++) {
-      if ((statedata & (10^i)) == 1) {
+      if ((statedata & (1<<i)) != 0) {
         digitalWrite(i, HIGH); // When button is triggered, pin set to high
+      }
+      else{
+        digitalWrite(i,LOW);  //When it isn't, set pin low
       }
   } 
 }
@@ -57,18 +65,17 @@ void applycommand() {
 
 
 void receivecommand(){ //This function receives the register
-    
-  String incomingCom = (String) Serial.read(); // The actual receiving of the data!
+  if (Serial.available()){
+  String incomingCom = Serial.readString();
+  //Serial.println(incomingCom);
+  //Serial.println(incomingCom);
   //String incomingCom = "<CP22GroundCom>32768-128"; // A test string to play with
   if (incomingCom.startsWith("<CP22GroundCom>", 0)) { // This if statement confirms the CPSS ground control header
     //Serial.println("Yup!");
     incomingCom.remove(0, 15); // Remove packet header for additional processing
     parsetransmission(incomingCom);
     }
-  else { // If didn't receive tag, try again
-    receivecommand();
-    }
-       
+  }
 }
 
 // String -> Void
@@ -81,7 +88,6 @@ void parsetransmission(String incomingCom){
   bool checkcheck = datacheck(receivedata, receivecheck);
   //Serial.println(checkcheck);
   if (checkcheck == 1) {
-    //Serial.println("yay");
     statedata = receivedata;
   }
   
@@ -129,7 +135,7 @@ bool datacheck(uint16_t indata, int inchecksum) {
     return true;
   }
   else {
-    Serial.println("False");
+    //Serial.println("False");
     //return false;
   }
 }
