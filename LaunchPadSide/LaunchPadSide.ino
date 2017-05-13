@@ -54,10 +54,10 @@ void loop() {
 void applycommand() {
   for (uint16_t i = 2; i < 14; i++) {
       if ((statedata & (1<<i)) != 0) {
-        digitalWrite(i, HIGH); // When button is triggered, pin set to high
+        digitalWrite(i, LOW); // When button is triggered, pin set to high
       }
       else{
-        digitalWrite(i,LOW);  //When it isn't, set pin low
+        digitalWrite(i,HIGH);  //When it isn't, set pin low
       }
   } 
 }
